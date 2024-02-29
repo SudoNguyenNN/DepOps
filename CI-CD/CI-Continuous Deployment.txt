@@ -1,0 +1,107 @@
+file cau hinh la file : .gitlab-ci.yml
+
+How to install gitlab-runner on ubuntu 22.04
+
+gitlab-runner register
+
+Cai xong co file configure : Configuration (with the authentication token) was saved in "/etc/gitlab-runner/config.toml"
+
+	concurrent = 1 ( mac dinh)   ===> nen sua thanh concurrent = 4 ( y nghia o day la co the chay 4 du an tren con gitlab-runner nay)
+
+Khoi dong gitlab-runnrer:
+	gitlab-runner run    ( khoi chay )
+		gitlab-runner run --working-directory /home/gitlab-runner/ --config /etc/gitlab-runner/config.toml --service gitlab-runner --user gitlab-runner  (  neu chay cau lenh nay thi no se chay tren nen shell va khong lm gi duoc)
+
+		 nohup gitlab-runner run --working-directory /home/gitlab-runner/ --config /etc/gitlab-runner/config.toml --service gitlab-runner --user gitlab-runner 2>&1 & ( chay an )
+
+cai sudo ma khong su dung password
+	Sua trong file:
+		 vi /etc/sudoers.tmp
+		 visudo (command on ubuntu 22.04)
+			root    ALL=(ALL:ALL) ALL
+			gitlab-runner ALL=(ALL) NOPASSWD: /bin/cp*
+			gitlab-runner ALL=(ALL) NOPASSWD: /bin/chown*
+			gitlap-runner ALL=(ALL) NOPASSWD: /bin/su shoeshop*
+
+
+
+
+file config CI-CD
+	
+	stages:
+    - build
+    - deploy
+    - checking
+build:
+    stage: build
+    variables:
+        GIT_STRATEGY: clone      # Buoc buil nay clone code ve
+    script:
+        - mvn install -DskipTests=true
+    tags:
+        - dev-server
+deploy:
+    stage: deploy
+    variables:
+        GIT_STRATEGY: none	# Buoc buil nay khong clone code ve
+    script:
+        - java -jar taget/shoe-ShoppingCart-0.0.1-SNAPSHOT.jar
+    tags:
+        - dev-server
+        
+Tim PID de kill job
+
+	root@dev-server:/project# ps -ef | grep shoe-ShoppingCart-0.0.1-SNAPSHOT.jar
+	gitlab-+  375713  375710  0 Feb28 ?        00:01:23 java -jar target/shoe-ShoppingCart-0.0.1-SNAPSHOT.jar
+	root      428419  413149  0 01:38 pts/1    00:00:00 grep --color=auto shoe-ShoppingCart-0.0.1-SNAPSHOT.jar
+	root@dev-server:/project# ps -ef | grep shoe-ShoppingCart-0.0.1-SNAPSHOT.jar | grep -v grep
+	gitlab-+  375713  375710  0 Feb28 ?        00:01:23 java -jar target/shoe-ShoppingCart-0.0.1-SNAPSHOT.jar
+	root@dev-server:/project# ps -ef | grep shoe-ShoppingCart-0.0.1-SNAPSHOT.jar | grep -v grep | awk '{print $2}'
+	375713
+	root@dev-server:/project# kill -9 $(ps -ef | grep shoe-ShoppingCart-0.0.1-SNAPSHOT.jar | grep -v grep | awk '{print $2}')   # awk giup hien thi truong can xem
+	root@dev-server:/project# ps -ef | grep shoe-ShoppingCart-0.0.1-SNAPSHOT.jar | grep -v grep | awk '{print $2}'
+	root@dev-server:/project#
+
+File .gitlab-ci.yml finish:
+
+variables:
+    projectname: shoe-ShoppingCart
+    version: 0.0.1-SNAPSHOT
+    projectpath: /project/shoeshop
+    username: shoeshop
+stages:
+    - build
+    - deploy
+    - checking
+build:
+    stage: build
+    variables:
+        GIT_STRATEGY: clone
+    script:
+        - mvn install -DskipTests=true
+    tags:
+        - dev-server
+    only:
+        - tags
+deploy:
+    stage: deploy
+    variables:
+        GIT_STRATEGY: none
+    script:
+        - sudo cp target/$projectname-$version.jar $projectpath
+        - sudo chown -R shoeshop. $projectpath
+        - sudo su $username -c "kill -9 $(ps -ef | grep $projectname-$version.jar | grep -v grep | awk '{print $2}')"
+        - sudo su $username -c "cd $projectpath/; nohup java -jar $projectname-$version.jar >nohup.out  2>&1 & "
+    tags:
+        - dev-server
+    only:
+        - tags
+        
+        
+
+
+
+			
+
+
+
