@@ -30,5 +30,16 @@ deploy:
         - dev-server
     only:
         - tags
+
+showlog:
+    stage: checking
+    variables:
+        GIT_STRATEGY: none
+    script:
+        - sudo su $username -c "cd $projectpath/; tail -n 10000 nohup.out "
+    tags:
+        - dev-server
+    only:
+        - tags
         
         
