@@ -1,0 +1,55 @@
+file cai docker.sh
+	vi install-docker.sh
+		!/bin/bash
+
+		sudo apt update
+		sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
+		curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+		echo "deb [signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+		sudo apt update
+		sudo apt install -y docker-ce
+		sudo systemctl start docker
+		sudo systemctl enable docker
+		sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+		sudo chmod +x /usr/local/bin/docker-compose
+		docker --version
+		docker-compose --version
+Len https://hub.docker.com/_/ubuntu/tags chon version roi pull ve
+	docker pull ubuntu:22.04
+
+Show docker images
+	docker images
+
+Run docker image:
+	docker run --name ubuntu -it ubuntu:22.04     (Cau lenh nay chi chay mot lan khi khoi tao docker)
+Check docker on server
+
+root@docker-server:~/docker#
+root@docker-server:~/docker# docker ps
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+root@docker-server:~/docker# docker ps -a
+CONTAINER ID   IMAGE          COMMAND       CREATED         STATUS                      PORTS     NAMES
+c85820d1ab64   ubuntu:22.04   "/bin/bash"   2 minutes ago   Exited (0) 23 seconds ago             ubuntu
+root@docker-server:~/docker# docker start c85
+c85
+root@docker-server:~/docker# docker ps
+CONTAINER ID   IMAGE          COMMAND       CREATED         STATUS         PORTS     NAMES
+c85820d1ab64   ubuntu:22.04   "/bin/bash"   2 minutes ago   Up 8 seconds             ubuntu
+root@docker-server:~/docker#
+
+Run lai docker on server:
+
+	docker exec -it ubuntu bash
+
+Run nginx on docker image:
+	docker run --name nginx -p 9999:80 nginx    # 9999 la port ben ngoai server con 80 la port trong docker
+
+Stop docker:
+	docker stop ubuntu
+Buoc xoa docker:
+	docker rm -f car-serv  # car-serv: la service docker 
+Xoa bo toan bo docker trong bien $(docker ps -a)
+	docker rm -f $(docker ps -a)
+Xoa image docker:
+	docker rmi ubuntu:22.04
+
