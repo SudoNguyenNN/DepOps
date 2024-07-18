@@ -1,0 +1,44 @@
+---
+- hosts: webubuntu
+  gather_facts: false
+  become: true
+  tasks:
+   - ping:
+
+   - name: install nginx
+     apt: name=nginx state=latest
+   - name: start nginx
+     service:
+      name: nginx
+      state: started
+
+   - name: custom index.html
+     ansible.builtin.copy:
+       dest: /var/www/html/index.html
+       src: ./website/web.html
+
+   - name: httpd service enabled
+     ansible.builtin.service:
+      name: nginx
+      enabled: true
+      state: started
+
+   - name: Add line to web
+     ansible.builtin.lineinfile:
+       path: /var/www/html/index.html
+       line: <h2> Add text to website</h2>
+       state: present
+
+   - name: Apache to listen on 8080
+     ansible.builtin.lineinfile:
+       path: /etc/nginx/sites-available/default
+       regexp: listen 80 default_server;
+       line: listen 8080 default_server;
+     notify: Restart Apache
+
+  handlers:
+    - name: Restart Apache
+      ansible.builtin.service:
+       name: nginx
+       state: restarted
+      
