@@ -1,0 +1,10 @@
+---
+- hosts: webubuntu
+  gather_facts: false
+  tasks:
+    - ping:
+    - name: create an empty file
+      file:
+       path: "/home/nguyennn"
+       state: touch
+      become: yes
